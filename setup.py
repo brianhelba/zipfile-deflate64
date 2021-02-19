@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from setuptools import Extension, setup
+from setuptools import Extension, find_packages, setup
 
 readme_file = Path(__file__).parent / 'README.md'
 with readme_file.open() as f:
@@ -9,7 +9,7 @@ with readme_file.open() as f:
 setup(
     name='zipfile-deflate64',
     version='0.0.1',
-    description='Extract DEFLATE64 ZIP archives with Python\'s zipfile API.',
+    description="Extract DEFLATE64 ZIP archives with Python's zipfile API.",
     long_description=long_description,
     long_description_content_type='text/markdown',
     license='Apache 2.0',
@@ -36,4 +36,20 @@ setup(
         'Topic :: System :: Archiving :: Compression',
     ],
     python_requires='>=3.6',
+    packages=find_packages(),
+    ext_modules=[
+        Extension(
+            'zipfile_deflate64.deflate64',
+            [
+                'zlib/zutil.c',
+                'zlib/contrib/infback9/infback9.c',
+                'zlib/contrib/infback9/inftree9.c',
+                'zipfile_deflate64/deflate64/deflate64module.c',
+            ],
+            include_dirs=[
+                'zlib',
+                'zlib/contrib/infback9',
+            ],
+        ),
+    ],
 )

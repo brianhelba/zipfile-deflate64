@@ -1,3 +1,4 @@
+graft zipfile_deflate64
 include zlib/zutil.h
 include zlib/gzguts.h
 include zlib/zutil.c
