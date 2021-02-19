@@ -1,0 +1,4 @@
+include zlib/zutil.h
+include zlib/gzguts.h
+include zlib/zutil.c
+graft zlib/contrib/infback9
