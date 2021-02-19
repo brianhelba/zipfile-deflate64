@@ -8,7 +8,7 @@ Extract DEFLATE64 ZIP archives with Python's `zipfile` API.
 Recent versions of Microsoft Windows Explorer
 [use DEFLATE64 compression when creating ZIP files larger than 2GB](https://github.com/dotnet/runtime/issues/17802#issuecomment-231808916).
 With the ubiquity of Windows and the ease of using "Sent to compressed folder", a majority of newly-created large
-ZIP files are use DEFLATE64 compression.
+ZIP files use DEFLATE64 compression.
 
 However, **support for DEFLATE64 in the open-source ecosystem is awful**!
 Most ZIP libraries have declined to implement DEFLATE64,
@@ -25,10 +25,10 @@ DEFLATE64, but there are several obstacles to general usability:
 * [p7zip, the POSIX-compatible CLI version](http://p7zip.sourceforge.net/) (which does include DEFLATE64),
   [has not had a release since 2016 and is likely unmaintained](https://github.com/jinfeihan57/p7zip/issues/114#issuecomment-761551564).
 * p7zip does not build an API for external software to invoke for decompression.
-* [p7zip seems to now be living on as the [jinfeihan57/p7zip](https://github.com/jinfeihan57/p7zip) fork,
+* p7zip seems to now be living on as the [jinfeihan57/p7zip](https://github.com/jinfeihan57/p7zip) fork,
   which is packaged by Arch Linux, amongst others.
   * This seems to be active, and now can be built with CMake, but there's no support for building an external API.
-* Many re-implementations of 7zip, such as [py7zr](https://github.com/miurahr/py7zr) for Python, do not support
+* Many re-implementations of 7-Zip, such as [py7zr](https://github.com/miurahr/py7zr) for Python, do not support
   DEFLATE64.
 
 In the Python ecosystem in particular, there have been several unfulfilled requests (
