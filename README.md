@@ -9,7 +9,7 @@ pip install zipfile-deflate64
 ```
 
 Python 3.6, 3.7, 3.8, and 3.9 are supported,
-with [manylinux2014 wheels](https://github.com/pypa/manylinux) and macOS wheels published to PyPI.
+with [manylinux2014](https://github.com/pypa/manylinux), macOS and Windows wheels published to PyPI.
 
 ## Usage
 Anywhere in a Python codebase:
