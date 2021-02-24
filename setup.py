@@ -8,7 +8,6 @@ with readme_file.open() as f:
 
 setup(
     name='zipfile-deflate64',
-    version='0.0.1',
     description="Extract DEFLATE64 ZIP archives with Python's zipfile API.",
     long_description=long_description,
     long_description_content_type='text/markdown',
