@@ -1,10 +1,10 @@
 # This file is for development utility only. The published module is built by setuptools.
 
 project(deflate64 LANGUAGES C)
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.18)
 
 find_package (Python REQUIRED COMPONENTS
-    Development
+    Development::Module
 )
 
 add_library(infback9 STATIC
