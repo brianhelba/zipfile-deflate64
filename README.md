@@ -3,11 +3,12 @@
 
 Extract DEFLATE64 ZIP archives with Python's `zipfile` API.
 
-## Usage
+## Installation
 ```bash
 pip install zipfile-deflate64
 ```
 
+## Usage
 Anywhere in a Python codebase:
 ```python
 import zipfile_deflate64  # This has the side effect of patching the zipfile module to support DEFLATE64
