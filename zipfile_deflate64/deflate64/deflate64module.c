@@ -149,7 +149,7 @@ static PyObject* Deflate64_decompress(Deflate64Object* self, PyObject *args) {
     }
 
     self->strm->next_in = input_buffer.buf;
-    self->strm->avail_in = input_buffer.len;
+    self->strm->avail_in = (uInt) input_buffer.len;
 
     int err = inflateBack9(self->strm, &zlib_in, self, &zlib_out, self);
     switch (err) {

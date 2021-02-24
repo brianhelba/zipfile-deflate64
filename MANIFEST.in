@@ -1,5 +1,7 @@
 graft zipfile_deflate64
-include zlib/zutil.h
 include zlib/gzguts.h
+include zlib/zconf.h
+include zlib/zlib.h
 include zlib/zutil.c
+include zlib/zutil.h
 graft zlib/contrib/infback9
