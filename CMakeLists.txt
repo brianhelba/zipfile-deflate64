@@ -5,7 +5,6 @@ cmake_minimum_required(VERSION 3.17)
 
 find_package (Python REQUIRED COMPONENTS
     Development
-#    Development::Module # Requires CMake 3.18
 )
 
 add_library(infback9 STATIC
