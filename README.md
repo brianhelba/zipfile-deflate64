@@ -8,6 +8,8 @@ Extract DEFLATE64 ZIP archives with Python's `zipfile` API.
 pip install zipfile-deflate64
 ```
 
+Python 3.7, 3.8, and 3.9 supported, with [manylinux2014 wheels](https://github.com/pypa/manylinux) published to PyPI.
+
 ## Usage
 Anywhere in a Python codebase:
 ```python
