@@ -87,7 +87,7 @@ static void Deflate64_dealloc(Deflate64Object* self) {
             case Z_OK:
                 // Success
                 break;
-                // Fatal errors
+            // Fatal errors
             case Z_STREAM_ERROR:
                 // Some parameters are invalid
             default:
