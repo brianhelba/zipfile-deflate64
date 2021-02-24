@@ -4,7 +4,26 @@ on:
     types: [published]
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.6", "3.7", "3.8", "3.9"]
+        # Linux builds don't need to run across different Python versions,
+        # they will all be installed under the manylinux action
+        exclude:
+          - os: ubuntu-latest
+            python-version: "3.6"
+          - os: ubuntu-latest
+            python-version: "3.7"
+          - os: ubuntu-latest
+            python-version: "3.8"
+          - os: ubuntu-latest
+            python-version: "3.9"
+        # Use the latest Python version as a base for Linux builds
+        include:
+          - os: ubuntu-latest
+            python-version: "3.x"
     steps:
       - uses: actions/checkout@v2
         with:
@@ -12,20 +31,36 @@ jobs:
           submodules: true
           # Tags are needed to compute the current version number
           fetch-depth: 0
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
-          python-version: "3.x"
+          python-version: ${{ matrix.python-version }}
+      - name: Install tox and pypa-build
+        run: |
+          pip install --upgrade pip
+          pip install tox build
+      - name: Build sdist
+        # Do this before the manylinux build, so the output directory doesn't get created by Docker
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          pyproject-build --sdist
       - name: Build manylinux wheels
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: RalfG/python-wheels-manylinux-build@v0.3.3-manylinux2014_x86_64
         with:
           python-versions: 'cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39'
           # Necessary for setuptools_scm to read the version from Git
           system-packages: 'git-lfs'
-      - name: Install tox
+      - name: Remove non-manylinux wheels
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        # Those are built as intermediate artifacts, but should not be published
+        # Since these are built by Docker, they must be removed with sudo
         run: |
-          pip install --upgrade pip
-          pip install tox
+           sudo rm -f dist/*-linux*.whl
+      - name: Build non-Linux wheels
+        if: ${{ matrix.os != 'ubuntu-latest' }}
+        run: |
+          pyproject-build --wheel
       - name: Publish to PyPI
         env:
           TWINE_USERNAME: "__token__"
