@@ -113,6 +113,20 @@ static int zlib_out(void* out_desc, unsigned char* buf, unsigned len) {
     // Concatenate buf onto self->output_buffer
     Py_ssize_t old_output_size = PyBytes_GET_SIZE(self->output_buffer);
 
+#if PY_VERSION_HEX < 0x3070700 // v3.7.3
+    // Workaround for bpo-33817, which was first (via backport) fixed in Python 3.7.3
+    // Before this, size-zero bytes objects could not be resized
+    if (old_output_size == 0) {
+        Py_DECREF(self->output_buffer);
+        // Just create a new buffer with the target size; the following resize will short-circuit
+        self->output_buffer = PyBytes_FromStringAndSize(NULL, old_output_size + len);
+        if (self->output_buffer == NULL) {
+            PyErr_NoMemory();
+            return -1;
+        }
+    }
+#endif
+
     int err = _PyBytes_Resize(&self->output_buffer, old_output_size + len);
     if (err < 0) {
         // MemoryError is set, and output_buffer is deallocated and set to NULL

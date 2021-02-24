@@ -26,6 +26,7 @@ setup(
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
@@ -33,7 +34,7 @@ setup(
         'Topic :: System :: Archiving',
         'Topic :: System :: Archiving :: Compression',
     ],
-    python_requires='>=3.7',
+    python_requires='>=3.6',
     packages=find_packages(),
     ext_modules=[
         Extension(
