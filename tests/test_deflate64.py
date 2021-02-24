@@ -10,6 +10,11 @@ def deflate64():
     return Deflate64()
 
 
+def test_instantiate():
+    deflate64 = Deflate64()
+    assert isinstance(deflate64, Deflate64)
+
+
 @pytest.mark.parametrize(
     'content_file_name',
     [
