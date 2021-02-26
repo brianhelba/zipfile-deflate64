@@ -61,8 +61,8 @@ In the Python ecosystem in particular, there have been several unfulfilled reque
 
 ### A Solution
 The best hope seems to be the [infback9](https://github.com/madler/zlib/tree/master/contrib/infback9) extension
-to zlib. This was developed by Mark Adler, the original author of zlib, and is kept in the source repository of zlib,
-but it is not officially supported and contains no build tooling and is not distributed with zlib packages.
+to zlib. This was developed in 2003 by Mark Adler, an original author of zlib, and is kept in the source repository
+of zlib, but it is not officially supported and contains no build tooling and is not distributed with zlib packages.
 Additionally, infback9 provides only low-level support for working with Deflate64 bitstreams, with no support for
 the ZIP archive format (which is out of scope for zlib).
 
