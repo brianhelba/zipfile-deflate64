@@ -43,5 +43,5 @@ def test_decompress_empty(deflate64):
 
 
 def test_decompress_invalid(deflate64):
-    with pytest.raises(ValueError, match=r'^Bad DEFLATE64 data: '):
+    with pytest.raises(ValueError, match=r'^Bad Deflate64 data: '):
         deflate64.decompress(b'garbage')

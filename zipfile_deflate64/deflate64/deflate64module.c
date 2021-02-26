@@ -170,7 +170,7 @@ static PyObject* Deflate64_decompress(Deflate64Object* self, PyObject *args) {
             break;
         case Z_DATA_ERROR:
             // Deflate format error
-            PyErr_Format(PyExc_ValueError, "Bad DEFLATE64 data: %s", self->strm->msg);
+            PyErr_Format(PyExc_ValueError, "Bad Deflate64 data: %s", self->strm->msg);
             goto error;
         case Z_MEM_ERROR:
             // Could not allocate memory for the state
@@ -206,14 +206,14 @@ static PyMemberDef Deflate64_members[] = {
 };
 
 static PyMethodDef Deflate64_methods[] = {
-    {"decompress", (PyCFunction) Deflate64_decompress, METH_VARARGS, "Decompress a DEFLATE64 stream."},
+    {"decompress", (PyCFunction) Deflate64_decompress, METH_VARARGS, "Decompress a Deflate64 stream."},
     {NULL}
 };
 
 static PyTypeObject Deflate64_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "zipfile_deflate64.deflate64.Deflate64",
-    .tp_doc = "An object for DEFLATE64 decompression.",
+    .tp_doc = "An object for Deflate64 decompression.",
     .tp_basicsize = sizeof(Deflate64Object),
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_new = PyType_GenericNew,
@@ -226,7 +226,7 @@ static PyTypeObject Deflate64_type = {
 static PyModuleDef deflate64_module = {
     PyModuleDef_HEAD_INIT,
     .m_name = "deflate64",
-    .m_doc = "Python access to zlib's infback9 extension for DEFLATE64 decompression.",
+    .m_doc = "Python access to zlib's infback9 extension for Deflate64 decompression.",
     .m_size = -1,
 };
 
