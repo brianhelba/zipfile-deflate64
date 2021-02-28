@@ -1,4 +1,15 @@
+# Reset the auto-include from setuptools_scm
+exclude *
+prune *
+
+# Re-include files which setuptools auto-includes
+include MANIFEST.in pyproject.toml README.md setup.py
+graft *.egg-info
+
+# Include the module
 graft zipfile_deflate64
+
+# Include zlib files required for build
 include zlib/gzguts.h
 include zlib/zconf.h
 include zlib/zlib.h
