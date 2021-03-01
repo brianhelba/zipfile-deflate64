@@ -27,7 +27,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          lfs: true
+          # LFS is not needed for releases
+          lfs: false
           submodules: true
           # Tags are needed to compute the current version number
           fetch-depth: 0
