@@ -145,7 +145,7 @@ static PyObject* Deflate64_decompress(Deflate64Object* self, PyObject *args) {
     self->output_buffer = PyBytes_FromStringAndSize(NULL, 0);
     if (self->output_buffer == NULL) {
         PyErr_NoMemory();
-        return -1;
+        return NULL;
     }
 
     self->strm->next_in = input_buffer.buf;
