@@ -66,13 +66,6 @@ static int Deflate64_init(Deflate64Object* self, PyObject* args, PyObject* kwds)
             return -1;
     }
 
-    // Allocate now, but with no size; this will be resized later
-    self->output_buffer = PyBytes_FromStringAndSize(NULL, 0);
-    if (self->output_buffer == NULL) {
-        PyErr_NoMemory();
-        return -1;
-    }
-
     // Default eof to false
     self->eof = 0;
 
@@ -146,6 +139,13 @@ static PyObject* Deflate64_decompress(Deflate64Object* self, PyObject *args) {
     Py_buffer input_buffer;
     if (!PyArg_ParseTuple(args, "y*", &input_buffer)) {
         return NULL;
+    }
+
+    // Allocate now, but with no size; this will be resized later
+    self->output_buffer = PyBytes_FromStringAndSize(NULL, 0);
+    if (self->output_buffer == NULL) {
+        PyErr_NoMemory();
+        return -1;
     }
 
     self->strm->next_in = input_buffer.buf;
