@@ -37,13 +37,12 @@ def test_decompress_output_type(data_dir, deflate64):
     assert isinstance(decompressed_content, bytes)
 
 
-@pytest.mark.xfail(raises=SystemError)
 def test_decompress_repeated(data_dir, deflate64):
     """Ensure that resources are properly shared by repeated invocations of Deflate64.decompress."""
     with open(data_dir / '10_lines.deflate64', 'rb') as compressed_content_stream:
         decompressed_content_10 = deflate64.decompress(compressed_content_stream.read())
 
-    with open(data_dir / '10_lines.deflate64', 'rb') as compressed_content_stream:
+    with open(data_dir / '100_lines.deflate64', 'rb') as compressed_content_stream:
         decompressed_content_100 = deflate64.decompress(compressed_content_stream.read())
 
     assert len(decompressed_content_10) == 180

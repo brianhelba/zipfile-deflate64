@@ -66,13 +66,6 @@ static int Deflate64_init(Deflate64Object* self, PyObject* args, PyObject* kwds)
             return -1;
     }
 
-    // Allocate now, but with no size; this will be resized later
-    self->output_buffer = PyBytes_FromStringAndSize(NULL, 0);
-    if (self->output_buffer == NULL) {
-        PyErr_NoMemory();
-        return -1;
-    }
-
     // Default eof to false
     self->eof = 0;
 
@@ -80,7 +73,6 @@ static int Deflate64_init(Deflate64Object* self, PyObject* args, PyObject* kwds)
 }
 
 static void Deflate64_dealloc(Deflate64Object* self) {
-    Py_XDECREF(self->output_buffer);
     if (self->strm != NULL) {
         int err = inflateBack9End(self->strm);
         switch (err) {
@@ -148,6 +140,13 @@ static PyObject* Deflate64_decompress(Deflate64Object* self, PyObject *args) {
         return NULL;
     }
 
+    // Allocate now, but with no size; this will be resized later
+    self->output_buffer = PyBytes_FromStringAndSize(NULL, 0);
+    if (self->output_buffer == NULL) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+
     self->strm->next_in = input_buffer.buf;
     self->strm->avail_in = (uInt) input_buffer.len;
 
@@ -184,13 +183,15 @@ static PyObject* Deflate64_decompress(Deflate64Object* self, PyObject *args) {
             goto error;
     }
 
-    // This method returns a new reference to output_buffer, which should persist even after this
-    // object is deallocated (which decrements output_buffer)
+    // This method returns a new reference to output_buffer
     Py_INCREF(self->output_buffer);
     ret = self->output_buffer;
 
 error:
     PyBuffer_Release(&input_buffer);
+    // Release and clear the internal reference to output_buffer, as it's intended to only be
+    // used during the lifetime of this decompress function
+    Py_CLEAR(self->output_buffer);
     return ret;
 }
 
