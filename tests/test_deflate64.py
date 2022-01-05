@@ -28,7 +28,7 @@ def test_decompress_content(data_dir, deflate64, content_file_name):
     with open(data_dir / content_file_name, 'rb') as compressed_content_stream:
         decompressed_content = deflate64.decompress(compressed_content_stream.read())
 
-    assert re.match(r'^(?:Sample content \d+\.\n)+$', decompressed_content.decode())
+    assert re.match(rb'^(?:Sample content \d+\.\n)+$', decompressed_content)
 
 
 def test_decompress_output_type(data_dir, deflate64):
