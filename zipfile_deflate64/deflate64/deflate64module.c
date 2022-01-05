@@ -132,12 +132,19 @@ static int zlib_out(void* out_desc, unsigned char* buf, unsigned len) {
     return 0;
 }
 
-static PyObject* Deflate64_decompress(Deflate64Object* self, PyObject *args) {
+static PyObject* Deflate64_decompress(Deflate64Object* self, PyObject* args, PyObject* kwargs) {
     PyObject* ret = NULL;
 
+    char* keywords[] = {"data", "max_length", NULL};
     Py_buffer input_buffer;
-    if (!PyArg_ParseTuple(args, "y*", &input_buffer)) {
+    Py_ssize_t max_length = -1;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*|n", keywords, &input_buffer, &max_length)) {
         return NULL;
+    }
+
+    if (max_length >= 0) {
+        PyErr_SetString(PyExc_ValueError, "Setting max_length is not supported");
+        goto error;
     }
 
     // Allocate now, but with no size; this will be resized later
@@ -207,7 +214,7 @@ static PyMemberDef Deflate64_members[] = {
 };
 
 static PyMethodDef Deflate64_methods[] = {
-    {"decompress", (PyCFunction) Deflate64_decompress, METH_VARARGS, "Decompress a Deflate64 stream."},
+    {"decompress", (PyCFunction) Deflate64_decompress, METH_VARARGS | METH_KEYWORDS, "Decompress a Deflate64 stream."},
     {NULL}
 };
 
