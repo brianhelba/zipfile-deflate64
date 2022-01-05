@@ -38,15 +38,18 @@ def test_decompress_output_type(data_dir, deflate64):
 
 
 def test_decompress_repeated(data_dir, deflate64):
-    """Ensure that resources are properly shared by repeated invocations of Deflate64.decompress."""
-    with open(data_dir / '10_lines.deflate64', 'rb') as compressed_content_stream:
-        decompressed_content_10 = deflate64.decompress(compressed_content_stream.read())
+    """Ensure that Deflate64.decompress can be called repeatedly on a compressed stream."""
+    read_size = 64 * 2 ** 10
+    decompressed_content = b''
+    with open(data_dir / '100k_lines.deflate64', 'rb') as compressed_content_stream:
+        while True:
+            compressed_content = compressed_content_stream.read(read_size)
+            if not compressed_content:
+                break
+            decompressed_content += deflate64.decompress(compressed_content)
 
-    with open(data_dir / '100_lines.deflate64', 'rb') as compressed_content_stream:
-        decompressed_content_100 = deflate64.decompress(compressed_content_stream.read())
-
-    assert len(decompressed_content_10) == 180
-    assert len(decompressed_content_100) == 1890
+    assert len(decompressed_content) == 2188890
+    assert re.match(rb'^(?:Sample content \d+\.\n)+$', decompressed_content)
 
 
 def test_decompress_empty(deflate64):
