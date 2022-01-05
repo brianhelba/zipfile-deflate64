@@ -35,13 +35,11 @@ def test_zipfile_compress_type(zip_file):
         assert zip_ext_file.compress_type == zipfile.ZIP_DEFLATED64
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_zipfile_extract(tmp_path, zip_file, file_name):
     zip_file.extract(file_name, path=tmp_path)
     assert (tmp_path / file_name).exists()
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_zipfile_extractall(tmp_path, zip_file):
     zip_file.extractall(path=tmp_path)
     assert len(list(tmp_path.iterdir())) == 4
@@ -62,7 +60,6 @@ def test_zipfile_read_short(zip_ext_file):
     assert decompressed_content == b'Sample content 0.\n'
 
 
-@pytest.mark.xfail(raises=ValueError)
 def test_zipfile_readline_repeated(zip_ext_file):
     while True:
         decompressed_content = zip_ext_file.readline()
