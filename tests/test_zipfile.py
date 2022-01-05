@@ -1,4 +1,3 @@
-import hashlib
 import pytest
 
 import zipfile_deflate64 as zipfile
@@ -59,18 +58,3 @@ def test_zipfile_read_long(zip_file):
         # Read a whole line from the second block
         decompressed_content = zip_ext_file.readline()
     assert decompressed_content == b'Sample content 3174.\n'
-
-def test_zipfile_read_chunk(zip_file):
-    chunksiz = 65536
-    decsiz = 0
-    hashobj = hashlib.sha256()
-    with zip_file.open('100k_lines.txt', mode='r') as zip_ext_file:
-        while True:
-            dec = zip_ext_file.read(chunksiz)
-            decsiz += len(dec)
-            hashobj.update(dec)
-            if len(dec) < chunksiz:
-                break
-            assert len(dec) == chunksiz
-        assert decsiz == 2188890
-        assert hashobj.hexdigest() == '821aaf56d797799dc619d506cb8a9e70a21257898843ce13e71a5474da7ced0b'
