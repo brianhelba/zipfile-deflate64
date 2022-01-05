@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 import zipfile_deflate64 as zipfile
@@ -18,14 +20,31 @@ def zip_file(data_dir):
         '100k_lines.txt',
     ]
 )
-def zip_ext_file(request, zip_file):
-    with zip_file.open(request.param, mode='r') as zip_ext_file:
+def file_name(request, zip_file):
+    return request.param
+
+
+@pytest.fixture
+def zip_ext_file(zip_file, file_name):
+    with zip_file.open(file_name, mode='r') as zip_ext_file:
         yield zip_ext_file
 
 
 def test_zipfile_compress_type(zip_file):
     for zip_ext_file in zip_file.infolist():
         assert zip_ext_file.compress_type == zipfile.ZIP_DEFLATED64
+
+
+@pytest.mark.xfail(raises=ValueError)
+def test_zipfile_extract(tmp_path, zip_file, file_name):
+    zip_file.extract(file_name, path=tmp_path)
+    assert (tmp_path / file_name).exists()
+
+
+@pytest.mark.xfail(raises=ValueError)
+def test_zipfile_extractall(tmp_path, zip_file):
+    zip_file.extractall(path=tmp_path)
+    assert len(list(tmp_path.iterdir())) == 4
 
 
 def test_zipfile_read(zip_ext_file):
@@ -43,10 +62,13 @@ def test_zipfile_read_short(zip_ext_file):
     assert decompressed_content == b'Sample content 0.\n'
 
 
-def test_zipfile_read_repeated(zip_ext_file):
-    zip_ext_file.read(18)
-    decompressed_content = zip_ext_file.readline()
-    assert decompressed_content == b'Sample content 1.\n'
+@pytest.mark.xfail(raises=ValueError)
+def test_zipfile_readline_repeated(zip_ext_file):
+    while True:
+        decompressed_content = zip_ext_file.readline()
+        if not decompressed_content:
+            break
+        assert re.match(rb'^Sample content \d+\.\n$', decompressed_content)
 
 
 def test_zipfile_read_long(zip_file):
