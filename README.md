@@ -44,12 +44,14 @@ Deflate64, but there are several obstacles to general usability:
 * [7-Zip itself](https://www.7-zip.org/) is a Windows-only GUI application
   * 7-Zip is still issuing new releases, but has declined to implement certain new compression formats,
     so the [mcmilk/7-Zip-zstd](https://github.com/mcmilk/7-Zip-zstd) fork is notable.
+  * 7-Zip also provides CLI version and 7z.dll, which can also be used as an API for external software.
 * [p7zip, the POSIX-compatible CLI version](http://p7zip.sourceforge.net/) (which does include Deflate64),
   [has not had a release since 2016 and is likely unmaintained](https://github.com/jinfeihan57/p7zip/issues/114#issuecomment-761551564).
-* p7zip does not build an API for external software to invoke for decompression.
+* p7zip's command line options are the same as 7-Zip CLI version.
+* p7zip provides 7z.so, which can also be used as an API for external software. Although the codebase is different, The API is the same as 7z.dll's.
 * p7zip seems to now be living on as the [jinfeihan57/p7zip](https://github.com/jinfeihan57/p7zip) fork,
   which is packaged by Arch Linux, amongst others.
-  * This seems to be active, and now can be built with CMake, but there's no support for building an external API.
+  * This seems to be active, and now can be built with CMake.
 * Many re-implementations of 7-Zip, such as [py7zr](https://github.com/miurahr/py7zr) for Python, do not support
   Deflate64.
 
