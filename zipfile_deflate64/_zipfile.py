@@ -1,4 +1,5 @@
 import zipfile
+import inspect
 
 from . import deflate64
 from ._patcher import patch
