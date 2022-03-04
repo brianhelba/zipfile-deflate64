@@ -190,6 +190,7 @@ static PyObject* Deflate64_decompress(Deflate64Object* self, PyObject *args) {
 
     memcpy(output_dest, prev_next_out, len);
     }
+    if(err==Z_STREAM_END)break;
     }
 
     // This method returns a new reference to output_buffer
