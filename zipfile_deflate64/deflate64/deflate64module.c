@@ -108,21 +108,25 @@ static PyObject* Deflate64_decompress(Deflate64Object* self, PyObject *args) {
         return NULL;
     }
 
-	const int bufsize = 2048;
-	Bytef next_out[bufsize];
-	self->strm->avail_out = 0;
+    const int bufsize = 2048;
+    Bytef next_out[bufsize];
+    self->strm->avail_out = 0;
     self->strm->next_in = input_buffer.buf;
     self->strm->avail_in = (uInt) input_buffer.len;
 
-	for(;;){
-	if(self->strm->avail_out==0){
-		self->strm->avail_out=bufsize;
-		self->strm->next_out=next_out;
-	}
-	int prev_avail_in = self->strm->avail_in;
-	Bytef *prev_next_out = self->strm->next_out;
+    for(;;){
+    if(self->strm->avail_out==0){
+        self->strm->avail_out=bufsize;
+        self->strm->next_out=next_out;
+    }
+    int prev_avail_out = self->strm->avail_out;
+    Bytef *prev_next_out = self->strm->next_out;
+    Bytef *prev_next_in = self->strm->next_in;
     int err = inflateBack9(self->strm);
     switch (err) {
+        case Z_OK:
+            // Success
+            break;
         case Z_STREAM_END:
             // Success
             self->eof = 1;
@@ -155,9 +159,10 @@ static PyObject* Deflate64_decompress(Deflate64Object* self, PyObject *args) {
             PyErr_BadInternalCall();
             goto error;
     }
-	if(self->strm->avail_in==0 && prev_next_out==self->strm->next_out)break;
+    if(self->strm->avail_in==0 && prev_next_in==self->strm->next_in && prev_next_out==self->strm->next_out)break;
 
-	int len = prev_avail_in - self->strm->avail_in;
+    int len = prev_avail_out - self->strm->avail_out;
+    if(len){
     // Concatenate buf onto self->output_buffer
     Py_ssize_t old_output_size = PyBytes_GET_SIZE(self->output_buffer);
 
@@ -184,7 +189,8 @@ static PyObject* Deflate64_decompress(Deflate64Object* self, PyObject *args) {
     char* output_dest = PyBytes_AS_STRING(self->output_buffer) + old_output_size;
 
     memcpy(output_dest, prev_next_out, len);
-	}
+    }
+    }
 
     // This method returns a new reference to output_buffer
     Py_INCREF(self->output_buffer);
