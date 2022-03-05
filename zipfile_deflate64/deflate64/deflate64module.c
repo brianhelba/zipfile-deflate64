@@ -47,7 +47,7 @@ static int Deflate64_init(Deflate64Object* self, PyObject* args, PyObject* kwds)
         return -1;
     }
 
-    int err = inflateBack9Init(self->strm, (unsigned char*) PyBytes_AS_STRING(self->window_buffer));
+    int err = inflate9Init(self->strm, (unsigned char*) PyBytes_AS_STRING(self->window_buffer));
     switch (err) {
         case Z_OK:
             // Success
@@ -74,7 +74,7 @@ static int Deflate64_init(Deflate64Object* self, PyObject* args, PyObject* kwds)
 
 static void Deflate64_dealloc(Deflate64Object* self) {
     if (self->strm != NULL) {
-        int err = inflateBack9End(self->strm);
+        int err = inflate9End(self->strm);
         switch (err) {
             case Z_OK:
                 // Success
@@ -122,7 +122,7 @@ static PyObject* Deflate64_decompress(Deflate64Object* self, PyObject *args) {
     int prev_avail_out = self->strm->avail_out;
     Bytef *prev_next_out = self->strm->next_out;
     Bytef *prev_next_in = self->strm->next_in;
-    int err = inflateBack9(self->strm);
+    int err = inflate9(self->strm);
     switch (err) {
         case Z_OK:
             // Success
