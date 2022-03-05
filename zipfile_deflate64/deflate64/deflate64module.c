@@ -159,7 +159,7 @@ static PyObject* Deflate64_decompress(Deflate64Object* self, PyObject *args) {
             PyErr_BadInternalCall();
             goto error;
     }
-    if(self->strm->avail_in==0 && prev_next_in==self->strm->next_in && prev_next_out==self->strm->next_out)break;
+    if(prev_next_in==self->strm->next_in && prev_next_out==self->strm->next_out)break;
 
     int len = prev_avail_out - self->strm->avail_out;
     if(len){
@@ -180,8 +180,8 @@ static PyObject* Deflate64_decompress(Deflate64Object* self, PyObject *args) {
     }
 #endif
 
-    err = _PyBytes_Resize(&self->output_buffer, old_output_size + len);
-    if (err < 0) {
+    int err2 = _PyBytes_Resize(&self->output_buffer, old_output_size + len);
+    if (err2 < 0) {
         // MemoryError is set, and output_buffer is deallocated and set to NULL
         goto error;
     }
