@@ -190,16 +190,11 @@ static PyObject* Deflate64_decompress(Deflate64Object* self, PyObject *args) {
 
     PyEval_RestoreThread(_save);
     self->output_buffer = PyBytes_FromStringAndSize(output_buffer, total_out);
-    // This method returns a new reference to output_buffer
-    Py_INCREF(self->output_buffer);
     ret = self->output_buffer;
 
 error:
     free(output_buffer);
     PyBuffer_Release(&input_buffer);
-    // Release and clear the internal reference to output_buffer, as it's intended to only be
-    // used during the lifetime of this decompress function
-    Py_CLEAR(self->output_buffer);
     return ret;
 }
 
