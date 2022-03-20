@@ -119,73 +119,60 @@ static PyObject* Deflate64_decompress(Deflate64Object* self, PyObject *args) {
     self->strm->avail_in = (uInt) input_buffer.len;
 
     for(;;){
-    if(self->strm->avail_out==0){
-        self->strm->avail_out=bufsize;
-        self->strm->next_out=next_out;
-    }
-    int prev_avail_out = self->strm->avail_out;
-    Bytef *prev_next_out = self->strm->next_out;
-    Bytef *prev_next_in = self->strm->next_in;
-    int err = inflate9(self->strm);
-    switch (err) {
-        case Z_OK:
-            // Success
-            break;
-        case Z_STREAM_END:
-            // Success
-            self->eof = 1;
-            break;
-#if 0
-        case Z_BUF_ERROR:
-            // in() or out() returned an error
-            if (self->strm->next_in == Z_NULL) {
-                // in() ran out of input; this is a somewhat expected condition
-                self->eof = 0;
+        if(self->strm->avail_out==0){
+            self->strm->avail_out=bufsize;
+            self->strm->next_out=next_out;
+        }
+        int prev_avail_out = self->strm->avail_out;
+        Bytef *prev_next_out = self->strm->next_out;
+        Bytef *prev_next_in = self->strm->next_in;
+        int err = inflate9(self->strm);
+        switch (err) {
+            case Z_OK:
+                // Success
                 break;
-            } else {
-                // out() returned an error; it's expected that it already set a PyErr
+            case Z_STREAM_END:
+                // Success
+                self->eof = 1;
+                break;
+            case Z_DATA_ERROR:
+                // Deflate format error
+                PyEval_RestoreThread(_save);
+                PyErr_Format(PyExc_ValueError, "Bad Deflate64 data: %s", self->strm->msg);
+                goto error;
+            case Z_MEM_ERROR:
+                // Could not allocate memory for the state
+                PyEval_RestoreThread(_save);
+                PyErr_NoMemory();
+                goto error;
+            // Fatal errors
+            case Z_STREAM_ERROR:
+                // Some parameters are invalid
+            default:
+                PyEval_RestoreThread(_save);
+                PyErr_BadInternalCall();
+                goto error;
+        }
+        if(prev_next_in==self->strm->next_in && prev_next_out==self->strm->next_out)break;
+
+        int len = prev_avail_out - self->strm->avail_out;
+        if(len){
+            // Concatenate buf onto self->output_buffer
+            size_t old_output_size = total_out; //PyBytes_GET_SIZE(self->output_buffer);
+            total_out += len;
+            output_buffer = realloc(output_buffer, old_output_size + len);
+            if(output_buffer == NULL){
+                PyEval_RestoreThread(_save);
+                PyErr_NoMemory();
                 goto error;
             }
-            break;
-#endif
-        case Z_DATA_ERROR:
-            // Deflate format error
-            PyEval_RestoreThread(_save);
-            PyErr_Format(PyExc_ValueError, "Bad Deflate64 data: %s", self->strm->msg);
-            goto error;
-        case Z_MEM_ERROR:
-            // Could not allocate memory for the state
-            PyEval_RestoreThread(_save);
-            PyErr_NoMemory();
-            goto error;
-        // Fatal errors
-        case Z_STREAM_ERROR:
-            // Some parameters are invalid
-        default:
-            PyEval_RestoreThread(_save);
-            PyErr_BadInternalCall();
-            goto error;
-    }
-    if(prev_next_in==self->strm->next_in && prev_next_out==self->strm->next_out)break;
 
-    int len = prev_avail_out - self->strm->avail_out;
-    if(len){
-    // Concatenate buf onto self->output_buffer
-    size_t old_output_size = total_out; //PyBytes_GET_SIZE(self->output_buffer);
-    total_out += len;
-    output_buffer = realloc(output_buffer, old_output_size + len);
-    if(output_buffer == NULL){
-        PyEval_RestoreThread(_save);
-        PyErr_NoMemory();
-        goto error;
-    }
+            char* output_dest = output_buffer + old_output_size;
 
-    char* output_dest = output_buffer + old_output_size;
+            memcpy(output_dest, prev_next_out, len);
 
-    memcpy(output_dest, prev_next_out, len);
-
-    }
-    if(err==Z_STREAM_END)break;
+        }
+        if(err==Z_STREAM_END)break;
     }
 
     PyEval_RestoreThread(_save);
