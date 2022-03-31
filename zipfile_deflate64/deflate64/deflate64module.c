@@ -47,7 +47,7 @@ static int Deflate64_init(Deflate64Object* self, PyObject* args, PyObject* kwds)
         return -1;
     }
 
-    int err = inflateBack9Init(self->strm, (unsigned char*) PyBytes_AS_STRING(self->window_buffer));
+    int err = inflate9Init(self->strm, (unsigned char*) PyBytes_AS_STRING(self->window_buffer));
     switch (err) {
         case Z_OK:
             // Success
@@ -74,7 +74,7 @@ static int Deflate64_init(Deflate64Object* self, PyObject* args, PyObject* kwds)
 
 static void Deflate64_dealloc(Deflate64Object* self) {
     if (self->strm != NULL) {
-        int err = inflateBack9End(self->strm);
+        int err = inflate9End(self->strm);
         switch (err) {
             case Z_OK:
                 // Success
@@ -93,45 +93,6 @@ static void Deflate64_dealloc(Deflate64Object* self) {
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
-static unsigned zlib_in(void* in_desc, z_const unsigned char** buf) {
-    // Input from input_buffer is set before calling inflateBack9
-    // No additional input is ever available
-    return 0;
-}
-
-static int zlib_out(void* out_desc, unsigned char* buf, unsigned len) {
-    Deflate64Object* self = (Deflate64Object*) out_desc;
-
-    // Concatenate buf onto self->output_buffer
-    Py_ssize_t old_output_size = PyBytes_GET_SIZE(self->output_buffer);
-
-#if PY_VERSION_HEX < 0x3070700 // v3.7.3
-    // Workaround for bpo-33817, which was first (via backport) fixed in Python 3.7.3
-    // Before this, size-zero bytes objects could not be resized
-    if (old_output_size == 0) {
-        Py_DECREF(self->output_buffer);
-        // Just create a new buffer with the target size; the following resize will short-circuit
-        self->output_buffer = PyBytes_FromStringAndSize(NULL, old_output_size + len);
-        if (self->output_buffer == NULL) {
-            PyErr_NoMemory();
-            return -1;
-        }
-    }
-#endif
-
-    int err = _PyBytes_Resize(&self->output_buffer, old_output_size + len);
-    if (err < 0) {
-        // MemoryError is set, and output_buffer is deallocated and set to NULL
-        return -1;
-    }
-
-    char* output_dest = PyBytes_AS_STRING(self->output_buffer) + old_output_size;
-
-    memcpy(output_dest, buf, len);
-
-    return 0;
-}
-
 static PyObject* Deflate64_decompress(Deflate64Object* self, PyObject *args) {
     PyObject* ret = NULL;
 
@@ -141,57 +102,86 @@ static PyObject* Deflate64_decompress(Deflate64Object* self, PyObject *args) {
     }
 
     // Allocate now, but with no size; this will be resized later
-    self->output_buffer = PyBytes_FromStringAndSize(NULL, 0);
-    if (self->output_buffer == NULL) {
+    char *output_buffer = malloc(0);
+    if (output_buffer == NULL) {
         PyErr_NoMemory();
         return NULL;
     }
 
+    PyThreadState *_save;
+    _save = PyEval_SaveThread();
+
+    size_t total_out = 0;
+    const int bufsize = 2048;
+    Bytef next_out[bufsize];
+    self->strm->avail_out = 0;
     self->strm->next_in = input_buffer.buf;
     self->strm->avail_in = (uInt) input_buffer.len;
 
-    int err = inflateBack9(self->strm, &zlib_in, self, &zlib_out, self);
-    switch (err) {
-        case Z_STREAM_END:
-            // Success
-            self->eof = 1;
-            break;
-        case Z_BUF_ERROR:
-            // in() or out() returned an error
-            if (self->strm->next_in == Z_NULL) {
-                // in() ran out of input; this is a somewhat expected condition
-                self->eof = 0;
+    for(;;){
+        if(self->strm->avail_out==0){
+            self->strm->avail_out=bufsize;
+            self->strm->next_out=next_out;
+        }
+        int prev_avail_out = self->strm->avail_out;
+        Bytef *prev_next_out = self->strm->next_out;
+        Bytef *prev_next_in = self->strm->next_in;
+        int err = inflate9(self->strm);
+        switch (err) {
+            case Z_OK:
+                // Success
                 break;
-            } else {
-                // out() returned an error; it's expected that it already set a PyErr
+            case Z_STREAM_END:
+                // Success
+                self->eof = 1;
+                break;
+            case Z_DATA_ERROR:
+                // Deflate format error
+                PyEval_RestoreThread(_save);
+                PyErr_Format(PyExc_ValueError, "Bad Deflate64 data: %s", self->strm->msg);
+                goto error;
+            case Z_MEM_ERROR:
+                // Could not allocate memory for the state
+                PyEval_RestoreThread(_save);
+                PyErr_NoMemory();
+                goto error;
+            // Fatal errors
+            case Z_STREAM_ERROR:
+                // Some parameters are invalid
+            default:
+                PyEval_RestoreThread(_save);
+                PyErr_BadInternalCall();
+                goto error;
+        }
+        if(prev_next_in==self->strm->next_in && prev_next_out==self->strm->next_out)break;
+
+        int len = prev_avail_out - self->strm->avail_out;
+        if(len){
+            // Concatenate buf onto self->output_buffer
+            size_t old_output_size = total_out; //PyBytes_GET_SIZE(self->output_buffer);
+            total_out += len;
+            output_buffer = realloc(output_buffer, old_output_size + len);
+            if(output_buffer == NULL){
+                PyEval_RestoreThread(_save);
+                PyErr_NoMemory();
                 goto error;
             }
-            break;
-        case Z_DATA_ERROR:
-            // Deflate format error
-            PyErr_Format(PyExc_ValueError, "Bad Deflate64 data: %s", self->strm->msg);
-            goto error;
-        case Z_MEM_ERROR:
-            // Could not allocate memory for the state
-            PyErr_NoMemory();
-            goto error;
-        // Fatal errors
-        case Z_STREAM_ERROR:
-            // Some parameters are invalid
-        default:
-            PyErr_BadInternalCall();
-            goto error;
+
+            char* output_dest = output_buffer + old_output_size;
+
+            memcpy(output_dest, prev_next_out, len);
+
+        }
+        if(err==Z_STREAM_END)break;
     }
 
-    // This method returns a new reference to output_buffer
-    Py_INCREF(self->output_buffer);
+    PyEval_RestoreThread(_save);
+    self->output_buffer = PyBytes_FromStringAndSize(output_buffer, total_out);
     ret = self->output_buffer;
 
 error:
+    free(output_buffer);
     PyBuffer_Release(&input_buffer);
-    // Release and clear the internal reference to output_buffer, as it's intended to only be
-    // used during the lifetime of this decompress function
-    Py_CLEAR(self->output_buffer);
     return ret;
 }
 
