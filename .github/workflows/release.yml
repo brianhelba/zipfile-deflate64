@@ -52,10 +52,25 @@ jobs:
           system-packages: 'git-lfs'
       - name: Remove non-manylinux wheels
         if: ${{ matrix.os == 'ubuntu-latest' }}
+        # clean before building musllinux
+        run: |
+           sudo rm -rf build
+           sudo rm -f dist/*-linux*.whl
+      - name: Build manylinux wheels (2)
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: cielavenir/python-wheels-manylinux-build@v0.4.2-musllinux_1_1_x86_64
+        with:
+          python-versions: 'cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39 cp310-cp310'
+          # Necessary for setuptools_scm to read the version from Git
+          system-packages: 'git-lfs'
+      - name: Remove non-manylinux wheels
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         # Those are built as intermediate artifacts, but should not be published
         # Since these are built by Docker, they must be removed with sudo
         run: |
            sudo rm -f dist/*-linux*.whl
+           # remove double-audit wheels
+           sudo rm -f dist/*manylinux*manylinux*manylinux*manylinux*.whl
       - name: Build non-Linux wheels
         if: ${{ matrix.os != 'ubuntu-latest' && matrix.os != 'macos-latest' }}
         run: |
