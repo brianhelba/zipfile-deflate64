@@ -57,9 +57,17 @@ jobs:
         run: |
            sudo rm -f dist/*-linux*.whl
       - name: Build non-Linux wheels
-        if: ${{ matrix.os != 'ubuntu-latest' }}
+        if: ${{ matrix.os != 'ubuntu-latest' && matrix.os != 'macos-latest' }}
         run: |
           pyproject-build --wheel
+      - name: Build wheel (macOS x86_64)
+        if: ${{ matrix.os == 'macos-latest' }}
+        run: |
+          MACOSX_DEPLOYMENT_TARGET="10.14" _PYTHON_HOST_PLATFORM="macosx-10.14-x86_64" ARCHFLAGS="-arch x86_64" pyproject-build --wheel
+      - name: Build wheel (macOS arm64)
+        if: ${{ matrix.os == 'macos-latest' && matrix.python-version != '2.7' && matrix.python-version != '3.4' && matrix.python-version != '3.5' && matrix.python-version != '3.6' && matrix.python-version != '3.7' }}
+        run: |
+          MACOSX_DEPLOYMENT_TARGET="11.0" _PYTHON_HOST_PLATFORM="macosx-11.0-arm64" ARCHFLAGS="-arch arm64" pyproject-build --wheel
       - name: Publish to PyPI
         env:
           TWINE_USERNAME: "__token__"
