@@ -2,17 +2,17 @@ import re
 
 import pytest
 
-from zipfile_deflate64.deflate64 import Deflate64
+from zipfile_deflate64._deflate64 import Decompressor
 
 
 @pytest.fixture
 def deflate64():
-    return Deflate64()
+    return Decompressor()
 
 
 def test_instantiate():
-    deflate64 = Deflate64()
-    assert isinstance(deflate64, Deflate64)
+    deflate64 = Decompressor()
+    assert isinstance(deflate64, Decompressor)
 
 
 @pytest.mark.parametrize(
@@ -39,7 +39,7 @@ def test_decompress_output_type(data_dir, deflate64):
 
 def test_decompress_repeated(data_dir, deflate64):
     """Ensure that Deflate64.decompress can be called repeatedly on a compressed stream."""
-    read_size = 64 * 2 ** 10
+    read_size = 64 << 10
     decompressed_content = b''
     with open(data_dir / '100k_lines.deflate64', 'rb') as compressed_content_stream:
         while True:
@@ -58,5 +58,5 @@ def test_decompress_empty(deflate64):
 
 
 def test_decompress_invalid(deflate64):
-    with pytest.raises(ValueError, match=r'^Bad Deflate64 data: '):
+    with pytest.raises(ValueError):
         deflate64.decompress(b'garbage')

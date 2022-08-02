@@ -71,7 +71,7 @@ def test_zipfile_readline_repeated(zip_ext_file):
 def test_zipfile_read_long(zip_file):
     with zip_file.open('100k_lines.txt', mode='r') as zip_ext_file:
         # Read an entire block
-        zip_ext_file.read(64 * 2 ** 10)
+        zip_ext_file.read(64 << 10)
         # Read a little more, to the end of the line
         zip_ext_file.readline()
         # Read a whole line from the second block

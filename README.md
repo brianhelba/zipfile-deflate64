@@ -8,8 +8,7 @@ Extract Deflate64 ZIP archives with Python's `zipfile` API.
 pip install zipfile-deflate64
 ```
 
-Python 3.6, 3.7, 3.8, 3.9, and 3.10 are supported,
-with [manylinux2014](https://github.com/pypa/manylinux), macOS and Windows wheels published to PyPI.
+Python 3.7, 3.8, 3.9, and 3.10 are supported on linux, macOS and Windows.
 
 ## Usage
 Anywhere in a Python codebase:
@@ -50,8 +49,8 @@ Deflate64, but there are several obstacles to general usability:
 * p7zip seems to now be living on as the [jinfeihan57/p7zip](https://github.com/jinfeihan57/p7zip) fork,
   which is packaged by Arch Linux, amongst others.
   * This seems to be active, and now can be built with CMake, but there's no support for building an external API.
-* Many re-implementations of 7-Zip, such as [py7zr](https://github.com/miurahr/py7zr) for Python, do not support
-  Deflate64.
+* Many re-implementations of 7-Zip does not support Deflate64.
+* [py7zr](https://github.com/miurahr/py7zr), a re-implementation of 7-Zip for Python, support Deflate64 by inflate64.
 
 In the Python ecosystem in particular, there have been several unfulfilled requests (
 [[1]](https://github.com/UCL-ShippingGroup/pyrate/issues/33)
@@ -60,7 +59,11 @@ In the Python ecosystem in particular, there have been several unfulfilled reque
 ) for Deflate64 decompression support.
 
 ### A Solution
-The best hope seems to be the [infback9](https://github.com/madler/zlib/tree/master/contrib/infback9) extension
+Python package [inflate64](https://pypi.org/project/inflate64/) provide compression(deflate) and decompression(inflate)
+by Enhanced Deflate, aka Deflate64, procedure.
+
+### History
+The best hope was the [infback9](https://github.com/madler/zlib/tree/master/contrib/infback9) extension
 to zlib. This was developed in 2003 by Mark Adler, an original author of zlib, and is kept in the source repository
 of zlib, but it is not officially supported and contains no build tooling and is not distributed with zlib packages.
 Additionally, infback9 provides only low-level support for working with Deflate64 bitstreams, with no support for

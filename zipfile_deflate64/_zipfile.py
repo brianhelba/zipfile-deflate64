@@ -1,6 +1,6 @@
 import zipfile
 
-from . import deflate64
+from . import _deflate64
 from ._patcher import patch
 
 # Since none of the public API of zipfile needs to be patched, we don't have to worry about
@@ -18,10 +18,18 @@ def deflate64_check_compression(compression: int) -> None:
         patch.originals['_check_compression'](compression)
 
 
+@patch(zipfile, '_get_compressor')
+def deflate64_get_compressor(compress_type: int):
+    if compress_type == zipfile.ZIP_DEFLATED64:  # type: ignore[attr-defined]
+        return deflate64.Compressor()
+    else:
+        return patch.originals['_get_compressor'](compress_type)
+
+
 @patch(zipfile, '_get_decompressor')
 def deflate64_get_decompressor(compress_type: int):
     if compress_type == zipfile.ZIP_DEFLATED64:  # type: ignore[attr-defined]
-        return deflate64.Deflate64()
+        return deflate64.Decompressor()
     else:
         return patch.originals['_get_decompressor'](compress_type)
 
@@ -30,4 +38,4 @@ def deflate64_get_decompressor(compress_type: int):
 def deflate64_ZipExtFile_init(self, *args, **kwarg):  # noqa: N802
     patch.originals['__init__'](self, *args, **kwarg)
     if self._compress_type == zipfile.ZIP_DEFLATED64:
-        self.MIN_READ_SIZE = 64 * 2 ** 10
+        self.MIN_READ_SIZE = 64 << 10

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from setuptools import Extension, find_packages, setup
+from setuptools import find_packages, setup
 
 readme_file = Path(__file__).parent / 'README.md'
 with readme_file.open() as f:
@@ -28,7 +28,6 @@ setup(
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
@@ -37,21 +36,7 @@ setup(
         'Topic :: System :: Archiving',
         'Topic :: System :: Archiving :: Compression',
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.7',
+    install_requires=['inflate64'],
     packages=find_packages(),
-    ext_modules=[
-        Extension(
-            'zipfile_deflate64.deflate64',
-            [
-                'zlib/zutil.c',
-                'zlib/contrib/infback9/infback9.c',
-                'zlib/contrib/infback9/inftree9.c',
-                'zipfile_deflate64/deflate64/deflate64module.c',
-            ],
-            include_dirs=[
-                'zlib',
-                'zlib/contrib/infback9',
-            ],
-        ),
-    ],
 )
