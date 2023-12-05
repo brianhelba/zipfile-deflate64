@@ -27,7 +27,7 @@ jobs:
           - os: ubuntu-latest
             python-version: "3.x"
     steps:
-      - uses: actions/checkout@v24
+      - uses: actions/checkout@v4
         with:
           # LFS is not needed for releases
           lfs: false
