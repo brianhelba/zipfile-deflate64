@@ -8,26 +8,26 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         # Linux builds don't need to run across different Python versions,
         # they will all be installed under the manylinux action
         exclude:
-          - os: ubuntu-latest
-            python-version: "3.6"
-          - os: ubuntu-latest
-            python-version: "3.7"
           - os: ubuntu-latest
             python-version: "3.8"
           - os: ubuntu-latest
             python-version: "3.9"
           - os: ubuntu-latest
             python-version: "3.10"
+          - os: ubuntu-latest
+            python-version: "3.11"
+          - os: ubuntu-latest
+            python-version: "3.12"
         # Use the latest Python version as a base for Linux builds
         include:
           - os: ubuntu-latest
             python-version: "3.x"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           # LFS is not needed for releases
           lfs: false
@@ -35,7 +35,7 @@ jobs:
           # Tags are needed to compute the current version number
           fetch-depth: 0
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install tox and pypa-build
@@ -47,19 +47,15 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           pyproject-build --sdist
-      - name: Build manylinux wheels
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        uses: RalfG/python-wheels-manylinux-build@v0.4.2-manylinux2014_x86_64
-        with:
-          python-versions: 'cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39 cp310-cp310'
-          # Necessary for setuptools_scm to read the version from Git
-          system-packages: 'git-lfs'
-      - name: Remove non-manylinux wheels
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        # Those are built as intermediate artifacts, but should not be published
-        # Since these are built by Docker, they must be removed with sudo
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.16.2
+        env:
+          CIBW_SKIP: "pp* *musllinux*" # skips pypy and musllinux
+
+      - name: Move wheels to dist folder
         run: |
-           sudo rm -f dist/*-linux*.whl
+           mv wheelhouse/*.whl dist
+
       - name: Build non-Linux wheels
         if: ${{ matrix.os != 'ubuntu-latest' }}
         run: |
